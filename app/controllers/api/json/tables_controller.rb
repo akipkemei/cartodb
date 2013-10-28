@@ -129,7 +129,7 @@ class Api::Json::TablesController < Api::ApplicationController
   protected
 
   def load_table
-    @table = Table.find_by_identifier(current_user.id, params[:id])
+    @table = Table.where(:id => params[:id], :user_id => current_user.id).first
   end
 end
 
