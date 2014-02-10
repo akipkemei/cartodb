@@ -4,6 +4,7 @@ require 'pg'
 require 'redis'
 
 DBHOST = '127.0.0.1'
+DBPORT = 6432
 DBUSER = 'postgres'
 DBNAME = 'carto_db_development'
 REDIS_HOST = '127.0.0.1'
@@ -284,7 +285,7 @@ end
 
 
 def migrate_data(redis_keys)
-  sconn = PGconn.connect( host: DBHOST, user: 'postgres', dbname: 'postgres' )
+  sconn = PGconn.connect( host: DBHOST, port: DBPORT, user: 'postgres', dbname: 'postgres' )
   @conn.exec("SELECT id,uuid,database_name,username FROM users") do |result|
     result.each do |row|
       puts "Renaming pg user and db for id #{row['id']}"
@@ -357,7 +358,7 @@ def clean_db(tables)
   end
 end
 
-@conn = PGconn.connect( host: DBHOST, user: DBUSER, dbname: DBNAME )
+@conn = PGconn.connect( host: DBHOST, port: DBPORT, user: DBUSER, dbname: DBNAME )
 @conn.exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 
 if ACTION == 'schema'
