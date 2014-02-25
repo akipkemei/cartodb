@@ -76,7 +76,7 @@ def counter(max)
   end
 end
 
-if ACTION.nil? || !@actions.collect.keys.include?(ACTION)
+if ACTION.nil? || !@actions.keys.include?(ACTION)
   usage()
 end
 
@@ -348,6 +348,7 @@ def migrate_data(redis_keys)
         sconn.exec("ALTER DATABASE \"#{row['database_name']}\" RENAME TO \"#{user_database(row['uuid'])}\"")
         sconn.exec("ALTER ROLE \"#{database_username(row['id'])}\" RENAME TO \"#{database_username(row['uuid'])}\"")
         @conn.exec("UPDATE users SET database_name='#{user_database(row['uuid'])}' WHERE id=#{row['id']} AND uuid='#{row['uuid']}'")
+        @conn.exec("UPDATE user_tables SET database_name='#{user_database(row['uuid'])}' WHERE user_id=#{row['id']} AND user_uuid='#{row['uuid']}'")
       rescue => e
         log('C', "Renaming pg user and db for id #{row['id']}", e.error.strip)
       end
