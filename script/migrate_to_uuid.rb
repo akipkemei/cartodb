@@ -19,13 +19,13 @@ DBNAME = ENV['DBNAME']
 REDIS_HOST = ENV['REDIS_HOST']
 
 
-@actions = [
-            ['schema', 'Creates a UUID column in every table with a id. Also creates all the UUID dependency columns between tables. You can still rollback after this step'],
-            ['meta', 'Update every dependency UUID column with the proper one based on the id integer relations. This is the last step that you can rollback'],
-            ['rollback', 'Try to rollback previous steps'],
-            ['data', 'Migrate all postgresql database and users names to UUID format. Also update the user model database_name attribute. Update all redis info with UUIDs'],
-            ['clean', 'Drop old id columns. Rename new uuid colums to id. Rename all uuid dependency columns to id. Create new primary keys from UUID attributes']
-           ]
+@actions = {
+            'schema' => 'Creates a UUID column in every table with a id. Also creates all the UUID dependency columns between tables. You can still rollback after this step',
+            'meta' => 'Update every dependency UUID column with the proper one based on the id integer relations. This is the last step that you can rollback',
+            'rollback' => 'Try to rollback previous steps',
+            'data' => 'Migrate all postgresql database and users names to UUID format. Also update the user model database_name attribute. Update all redis info with UUIDs',
+            'clean' => 'Drop old id columns. Rename new uuid colums to id. Rename all uuid dependency columns to id. Create new primary keys from UUID attributes'
+           }
 
 ACTION = ARGV[0]
 
@@ -36,7 +36,7 @@ def execution_summary()
   #
   # You are running the action '#{ACTION}' which performs the next actions:
   # 
-  #   #{actions[ACTION]}
+  #   #{@actions[ACTION]}
   #
   # It's highly recommended to have a database backup of the PostgreSQL databases, mainly the metadata one and Redis.
   #
@@ -64,7 +64,7 @@ end
 def usage()
   puts "Usage: #{__FILE__} <action>"
   puts "Actions:"
-  @actions.each {|a| puts "  %10s   %s" % [a[0], a[1]]}
+  @actions.each {|k,v| puts "  %10s   %s" % [k, v]}
   exit 1
 end
 
@@ -76,7 +76,7 @@ def counter(max)
   end
 end
 
-if ACTION.nil? || !@actions.include?(ACTION)
+if ACTION.nil? || !@actions.collect.keys.include?(ACTION)
   usage()
 end
 
@@ -413,7 +413,7 @@ def clean_db(tables)
   end
 end
 
-
+execution_summary
 
 @conn = PGconn.connect( host: DBHOST, port: DBPORT, user: DBUSER, dbname: DBNAME )
 @conn.exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
