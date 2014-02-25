@@ -18,15 +18,62 @@ DBUSER = ENV['DBUSER']
 DBNAME = ENV['DBNAME']
 REDIS_HOST = ENV['REDIS_HOST']
 
-@actions = ['schema', 'rollback', 'meta', 'clean', 'data']
+
+@actions = [
+            ['schema', 'Creates a UUID column in every table with a id. Also creates all the UUID dependency columns between tables. You can still rollback after this step'],
+            ['meta', 'Update every dependency UUID column with the proper one based on the id integer relations. This is the last step that you can rollback'],
+            ['rollback', 'Try to rollback previous steps'],
+            ['data', 'Migrate all postgresql database and users names to UUID format. Also update the user model database_name attribute. Update all redis info with UUIDs'],
+            ['clean', 'Drop old id columns. Rename new uuid colums to id. Rename all uuid dependency columns to id. Create new primary keys from UUID attributes']
+           ]
 
 ACTION = ARGV[0]
+
+def execution_summary()
+  wait_time = 30
+  puts <<-EOH
+  ###
+  #
+  # You are running the action '#{ACTION}' which performs the next actions:
+  # 
+  #   #{actions[ACTION]}
+  #
+  # It's highly recommended to have a database backup of the PostgreSQL databases, mainly the metadata one and Redis.
+  #
+  #
+  # Params used within the execution of the script
+  # 
+  # DB Connection
+  # -------------
+  # Database host: #{DBHOST}
+  # Database port: #{DBPORT}
+  # Database name: #{DBNAME}
+  # Database user: #{DBUSER}
+  #
+  # Redis Connection
+  # ----------------
+  # Redis host: #{REDIS_HOST}
+  #
+  ###
+  EOH
+  puts "###"
+  puts "If there is anything wrong or you are not sure about what you are doing, you have #{wait_time} secs to cancel before the process starts"
+  counter(wait_time)
+end
 
 def usage()
   puts "Usage: #{__FILE__} <action>"
   puts "Actions:"
-  @actions.each {|a| puts "  #{a}"}
+  @actions.each {|a| puts "  %10s   %s" % [a[0], a[1]]}
   exit 1
+end
+
+def counter(max)
+  (0..max).each do |n|
+    print n
+    sleep 1
+    print "\r"
+  end
 end
 
 if ACTION.nil? || !@actions.include?(ACTION)
@@ -365,6 +412,8 @@ def clean_db(tables)
     end
   end
 end
+
+
 
 @conn = PGconn.connect( host: DBHOST, port: DBPORT, user: DBUSER, dbname: DBNAME )
 @conn.exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
