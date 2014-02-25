@@ -3,12 +3,20 @@
 require 'pg'
 require 'redis'
 
-DBHOST = '127.0.0.1'
+# RAILS_ENV=development DBNAME=carto_db_development DBHOST=127.0.0.1 DBUSER=postgres REDIS_HOST=127.0.0.1
+
+raise "You need to initialize a environment with RAILS_ENV" if (ENV['RAILS_ENV'].nil? || ENV['RAILS_ENV'].empty?)
+raise "You need to set a DBNAME env" if (ENV['DBNAME'].nil? || ENV['DBNAME'].empty?)
+raise "You need to set a DBHOST env" if (ENV['DBHOST'].nil? || ENV['DBHOST'].empty?)
+raise "You need to set a DBUSER env" if (ENV['DBUSER'].nil? || ENV['DBUSER'].empty?)
+raise "You need to set a REDIS_HOST env" if (ENV['REDIS_HOST'].nil? || ENV['REDIS_HOST'].empty?)
+
+ENVIRONMENT = ENV['RAILS_ENV']
+DBHOST = ENV['DBHOST']
 DBPORT = 6432
-DBUSER = 'postgres'
-DBNAME = 'carto_db_development'
-REDIS_HOST = '127.0.0.1'
-ENVIRONMENT = 'development'
+DBUSER = ENV['DBUSER']
+DBNAME = ENV['DBNAME']
+REDIS_HOST = ENV['REDIS_HOST']
 
 @actions = ['schema', 'rollback', 'meta', 'clean', 'data']
 
